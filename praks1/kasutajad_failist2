@@ -1,0 +1,31 @@
+#!/bin/bash
+# Skript loeb kasutaja sisestatud failist igal real oleva kasutajanime ning kooloniga eraldatud parooli ja loob antud kasutaja skriptiga lisa_kasutaja.sh
+
+# Kui sisendit ei sisestatud, katkestame skripti
+if [ $# -eq 0 ]; then
+    echo "Tekkis viga – vajalik on sisend. Kasuta käsku järgneval kujul:"
+    echo "$0 <fail, kust loeme sisse kasutajad>"
+    exit 1
+fi
+
+# Kui sisend on olemas, kontrollime, kas fail on loetav
+if [ -r "$1" ]; then
+    # Fail eksisteerib, kontrollime ka, kas lisa_kasutaja skript eksisteerib ja on käivitatav
+    if [ -x "lisa_kasutaja" ]; then
+        # Loeme failist igat rida
+        while IFS=: read -r kasutaja parool; do
+            # Loome kasutaja
+            sh lisa_kasutaja "$kasutaja"
+
+            # Lisame kasutajale parooli
+            echo "$kasutaja:$parool" | chpasswd
+            echo "Kasutajale $kasutaja parool lisatud."
+            grep "$kasutaja" /etc/shadow
+        done < "$1"
+    else
+        echo "Tekkis viga – skripti lisa_kasutaja ei eksisteeri või pole see käivitatav."
+    fi
+else
+    # Faili ei eksisteeri
+    echo "Tekkis viga – Faili '$1' ei eksisteeri või pole see loetav."
+fi
