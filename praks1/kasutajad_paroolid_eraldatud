@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Skript loeb parameetritena kaht faili (ühes kasutajad, teises paroolid). Skript lisab kasutaja ja talle vastava parooli.
+
+# Kui sisendit ei sisestatud, katkestame skripti
+if [ $# -ne 2 ]; then
+    echo "Error: Tekkis viga – vajalik on sisend. Kasuta käsku järgneval kujul:"
+    echo "$0 <fail, kust loeme sisse kasutajad> <fail, kust loeme sisse paroolid>"
+    exit 1
+fi
+
+# Kontrollime, kas esimene fail on loetav
+if [ -r "$1" ]; then
+    # Esimene fail on loetav. Kontrollime, kas ka teine fail on loetav
+    if [ -r "$2" ]; then
+        # Loeme kasutajanimede failist igat rida
+        while IFS= read -r kasutaja; do
+            # Loome kasutaja, lisaks kodukataloogi ja shelliks bash
+            /usr/sbin/useradd "$kasutaja" -m -s /bin/bash
+            output=$?
+
+            # Kontrollime, mis tuli väljundiks
+            if [ $output -eq 0 ]; then
+                echo "Kasutaja $kasutaja on edukalt loodud. Info:"
+                id "$kasutaja"
+                ls -la /home/"$kasutaja"
+
+                # Lisame kasutajale parooli
+                parool=$(grep "^$kasutaja:" "$2" | cut -d':' -f2)
+                echo "$kasutaja:$parool" | chpasswd
+                echo "Kasutajale $kasutaja parool lisatud."
+                grep "$kasutaja" /etc/shadow
+            else
+                echo "Error: Tekkis probleem kasutaja $kasutaja loomisega."
+                echo "Info: $output"
+            fi
+        done < "$1"
+    else
+        echo "Error: Faili '$2' ei eksisteeri või pole see loetav."
+    fi
+else
+    echo "Error: Faili '$1' ei eksisteeri või pole see loetav."
+fi
