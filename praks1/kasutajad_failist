@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Kasutajate lisamise skript
+if [ $# -ne 1 ]; then
+    echo "Kasutusjuhend: $0 failinimi"
+else
+    failinimi=$1
+
+    # Kontrollin, kas fail on olemas
+    if [ -f "$failinimi" ]; then
+        echo "Fail on korras"
+
+        # Loeme failist kasutajanimesid
+        while IFS= read -r nimi; do
+            # Kutsume välja lisa_kasutaja skripti
+            sh lisa_kasutaja "$nimi" # Siin kutsume lisa_kasutaja skripti
+        done < "$failinimi"
+    else
+        echo "Probleem failiga $failinimi"
+    fi
+    # Parameetrite kontrolli lõpp
+fi
